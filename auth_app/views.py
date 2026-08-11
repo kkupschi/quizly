@@ -43,7 +43,7 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Prueft die Anmeldedaten und gibt die Token als Cookies zurueck."""
+        """Prüft die Anmeldedaten und gibt die Token als Cookies zurück."""
         user = authenticate(
             username=request.data.get('username'),
             password=request.data.get('password'),
@@ -57,10 +57,10 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    """Meldet den Benutzer ab und macht seinen Token ungueltig."""
+    """Meldet den Benutzer ab und macht seinen Token ungültig."""
 
     def post(self, request):
-        """Setzt den Token auf die Blacklist und loescht die Cookies."""
+        """Setzt den Token auf die Blacklist und löscht die Cookies."""
         blacklist_refresh_token(request.COOKIES.get(REFRESH_COOKIE))
         response = Response({'detail': LOGOUT_DETAIL})
         delete_auth_cookies(response)

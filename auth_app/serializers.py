@@ -18,13 +18,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
-        """Stellt sicher, dass die Mailadresse noch nicht vergeben ist."""
+        """Stellt sicher, dass die Mail noch nicht vergeben ist."""
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('This email is already in use.')
         return value
 
     def validate(self, attrs):
-        """Prueft, ob Passwort und Passwortbestaetigung uebereinstimmen."""
+        """Prüft, ob Passwort und Passwortbestätigung übereinstimmen."""
         if attrs['password'] != attrs['confirmed_password']:
             raise serializers.ValidationError(
                 {'confirmed_password': 'Passwords do not match.'}

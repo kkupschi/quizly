@@ -19,12 +19,12 @@ def set_auth_cookie(response, name, token):
 
 
 def build_user_payload(user):
-    """Baut die Userdaten, die der Login zurueckgibt."""
+    """Baut die Userdaten, die der Login zurückgibt."""
     return {'id': user.id, 'username': user.username, 'email': user.email}
 
 
 def build_login_response(user):
-    """Erstellt die Antwort fuer den Login inklusive gesetzter Cookies."""
+    """Erstellt die Antwort für den Login inklusive gesetzter Cookies."""
     refresh = RefreshToken.for_user(user)
     response = Response({
         'detail': 'Login successfully!',
