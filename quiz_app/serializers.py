@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Question, Quiz
-from .utils import is_youtube_url
+from .utils import is_youtube_url, normalize_youtube_url
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -44,7 +44,7 @@ class QuizCreateSerializer(serializers.Serializer):
     url = serializers.URLField()
 
     def validate_url(self, value):
-        """Lässt nur Adressen zu, die auf ein Youtube Video zeigen."""
+        """Lässt nur Youtube Adressen zu und speichert sie einheitlich."""
         if not is_youtube_url(value):
             raise serializers.ValidationError('Only YouTube URLs are supported.')
-        return value
+        return normalize_youtube_url(value)
