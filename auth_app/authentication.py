@@ -7,7 +7,8 @@ class CookieJWTAuthentication(JWTAuthentication):
 
     def authenticate(self, request):
         """Liest den Token aus dem Cookie und gibt den User zurück."""
-        raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_ACCESS'])
+        cookie_name = settings.SIMPLE_JWT['AUTH_COOKIE_ACCESS']
+        raw_token = request.COOKIES.get(cookie_name)
         if not raw_token:
             return None
         validated_token = self.get_validated_token(raw_token)

@@ -42,7 +42,7 @@ def delete_auth_cookies(response):
 
 
 def blacklist_refresh_token(raw_token):
-    """Setzt den uebergebenen Token auf die Blacklist, sofern er gueltig ist."""
+    """Setzt den Token auf die Blacklist, sofern er gültig ist."""
     if not raw_token:
         return
     try:

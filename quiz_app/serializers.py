@@ -46,5 +46,7 @@ class QuizCreateSerializer(serializers.Serializer):
     def validate_url(self, value):
         """Lässt nur Youtube Adressen zu und speichert sie einheitlich."""
         if not is_youtube_url(value):
-            raise serializers.ValidationError('Only YouTube URLs are supported.')
+            raise serializers.ValidationError(
+                'Only YouTube URLs are supported.'
+            )
         return normalize_youtube_url(value)
