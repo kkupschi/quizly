@@ -1,9 +1,13 @@
+import json
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from .functions import QuizGenerationError, parse_quiz
 from .models import Question, Quiz
 from .utils import is_youtube_url, normalize_youtube_url
 
@@ -25,6 +29,22 @@ def logged_in_client(username):
         format='json',
     )
     return user, client
+
+
+def fake_quiz_data(count=10):
+    """Baut eine gültige Antwort, wie sie die KI liefern würde."""
+    return {
+        'title': 'Erzeugtes Quiz',
+        'description': 'Beschreibung aus der KI',
+        'questions': [
+            {
+                'question_title': f'Frage {nummer}',
+                'question_options': ['A', 'B', 'C', 'D'],
+                'answer': 'B',
+            }
+            for nummer in range(1, count + 1)
+        ],
+    }
 
 
 def make_quiz(owner, title='Testquiz'):
@@ -97,6 +117,12 @@ class QuizCreateTests(APITestCase):
         """Legt einen angemeldeten Benutzer an."""
         self.url = reverse('quiz-list')
         self.user, self.client = logged_in_client('alice')
+        patcher = mock.patch(
+            'quiz_app.utils.generate_quiz_data',
+            return_value=fake_quiz_data(),
+        )
+        self.addCleanup(patcher.stop)
+        self.generate = patcher.start()
 
     def test_requires_authentication(self):
         """Ohne Anmeldung ist das Anlegen nicht möglich."""
@@ -267,3 +293,102 @@ class QuizDetailTests(APITestCase):
         """Das Löschen einer unbekannten Kennung führt zu 404."""
         response = self.client.delete(self.unknown_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class QuizGenerationParsingTests(SimpleTestCase):
+    """Prüft, wie die Antwort der KI eingelesen und geprüft wird."""
+
+    def test_parses_valid_answer(self):
+        """Eine korrekte Antwort wird übernommen."""
+        data = parse_quiz(json.dumps(fake_quiz_data()))
+        self.assertEqual(data['title'], 'Erzeugtes Quiz')
+        self.assertEqual(len(data['questions']), 10)
+
+    def test_accepts_code_fence(self):
+        """Eine in Gegenstriche gefasste Antwort wird trotzdem gelesen."""
+        roh = '```json\n' + json.dumps(fake_quiz_data(1)) + '\n```'
+        data = parse_quiz(roh)
+        self.assertEqual(len(data['questions']), 1)
+
+    def test_rejects_broken_json(self):
+        """Eine kaputte Antwort führt zu einem klaren Fehler."""
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz('das ist kein json')
+
+    def test_rejects_missing_questions(self):
+        """Eine Antwort ohne Fragen wird abgelehnt."""
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps({'title': 'X', 'description': 'Y'}))
+
+    def test_rejects_empty_questions(self):
+        """Eine leere Frageliste wird abgelehnt."""
+        daten = fake_quiz_data(0)
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps(daten))
+
+    def test_rejects_wrong_option_count(self):
+        """Eine Frage mit drei Optionen wird abgelehnt."""
+        daten = fake_quiz_data(1)
+        daten['questions'][0]['question_options'] = ['A', 'B', 'C']
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps(daten))
+
+    def test_rejects_answer_outside_options(self):
+        """Eine Antwort, die nicht unter den Optionen steht, wird abgelehnt."""
+        daten = fake_quiz_data(1)
+        daten['questions'][0]['answer'] = 'Z'
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps(daten))
+
+    def test_rejects_question_without_text(self):
+        """Eine Frage ohne Text wird abgelehnt."""
+        daten = fake_quiz_data(1)
+        daten['questions'][0]['question_title'] = ''
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps(daten))
+
+
+class QuizGenerationEndpointTests(APITestCase):
+    """Prüft das Zusammenspiel von Endpunkt und Erzeugung."""
+
+    def setUp(self):
+        """Legt einen angemeldeten Benutzer an."""
+        self.url = reverse('quiz-list')
+        self.user, self.client = logged_in_client('alice')
+
+    def post_video(self):
+        """Schickt eine gültige Videoadresse an den Endpunkt."""
+        return self.client.post(self.url, {'url': VIDEO_URL}, format='json')
+
+    @mock.patch('quiz_app.utils.generate_quiz_data')
+    def test_saves_all_questions(self, generate):
+        """Alle gelieferten Fragen landen in der Datenbank."""
+        generate.return_value = fake_quiz_data()
+        response = self.post_video()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Question.objects.count(), 10)
+
+    @mock.patch('quiz_app.utils.generate_quiz_data')
+    def test_uses_title_from_ai(self, generate):
+        """Titel und Beschreibung stammen aus der Antwort der KI."""
+        generate.return_value = fake_quiz_data(1)
+        response = self.post_video()
+        self.assertEqual(response.data['title'], 'Erzeugtes Quiz')
+        self.assertEqual(
+            response.data['description'], 'Beschreibung aus der KI'
+        )
+
+    @mock.patch('quiz_app.utils.generate_quiz_data')
+    def test_reports_generation_failure(self, generate):
+        """Ein Fehler in der Erzeugung führt zu 400 mit Erklärung."""
+        generate.side_effect = QuizGenerationError('Video nicht verfügbar.')
+        response = self.post_video()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'], 'Video nicht verfügbar.')
+
+    @mock.patch('quiz_app.utils.generate_quiz_data')
+    def test_saves_nothing_on_failure(self, generate):
+        """Nach einem Fehler bleibt kein halbes Quiz zurück."""
+        generate.side_effect = QuizGenerationError('Fehlgeschlagen.')
+        self.post_video()
+        self.assertEqual(Quiz.objects.count(), 0)

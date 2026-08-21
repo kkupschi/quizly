@@ -163,6 +163,11 @@ SIMPLE_JWT = {
 }
 
 
+# Google Gemini
+
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+
+
 # CORS
 
 CORS_ALLOWED_ORIGINS = [

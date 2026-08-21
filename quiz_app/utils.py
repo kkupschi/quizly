@@ -1,6 +1,7 @@
 import re
 from urllib.parse import parse_qs, urlparse
 
+from .functions import generate_quiz_data
 from .models import Question, Quiz
 
 VIDEO_ID_PATTERN = re.compile(r'^[\w-]{11}$')
@@ -58,18 +59,6 @@ def is_youtube_url(url):
 def normalize_youtube_url(url):
     """Bringt eine Youtube Adresse in die vom Frontend erwartete Form."""
     return WATCH_URL.format(extract_video_id(url))
-
-
-def generate_quiz_data(video_url):
-    """Liefert Titel, Beschreibung und Fragen zu einem Video.
-
-    Platzhalter, bis die Anbindung an Whisper und Gemini folgt.
-    """
-    return {
-        'title': 'Quiz in Vorbereitung',
-        'description': f'Automatisch erzeugtes Quiz zu {video_url}',
-        'questions': [],
-    }
 
 
 def save_questions(quiz, questions):

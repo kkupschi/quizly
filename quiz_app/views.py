@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .functions import QuizGenerationError
 from .models import Quiz
 from .permissions import IsOwner
 from .serializers import QuizCreateSerializer, QuizSerializer
@@ -23,9 +24,14 @@ class QuizListCreateView(generics.ListCreateAPIView):
         """Erzeugt ein Quiz aus der übergebenen Videoadresse."""
         input_serializer = QuizCreateSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
-        quiz = create_quiz_from_url(
-            request.user, input_serializer.validated_data['url']
-        )
+        try:
+            quiz = create_quiz_from_url(
+                request.user, input_serializer.validated_data['url']
+            )
+        except QuizGenerationError as error:
+            return Response(
+                {'detail': str(error)}, status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(
             QuizSerializer(quiz).data, status=status.HTTP_201_CREATED
         )
