@@ -4,8 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import RegistrationSerializer
-from .utils import (
+from ..utils import (
     ACCESS_COOKIE,
     REFRESH_COOKIE,
     blacklist_refresh_token,
@@ -14,6 +13,7 @@ from .utils import (
     delete_auth_cookies,
     set_auth_cookie,
 )
+from .serializers import RegistrationSerializer
 
 LOGOUT_DETAIL = (
     'Log-Out successfully! All Tokens will be deleted. '
@@ -22,12 +22,12 @@ LOGOUT_DETAIL = (
 
 
 class RegistrationView(APIView):
-    """Nimmt Registrierungen entgegen und legt neue Benutzer an."""
+    """Accepts registrations and creates new users."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Validiert die Eingaben und erstellt den Benutzer."""
+        """Validates the input and creates the user."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -38,12 +38,12 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
-    """Meldet den Benutzer an und setzt die Cookies."""
+    """Logs the user in and sets the auth cookies."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Prüft die Anmeldedaten und gibt die Token als Cookies zurück."""
+        """Checks the credentials and returns the tokens as cookies."""
         user = authenticate(
             username=request.data.get('username'),
             password=request.data.get('password'),
@@ -57,10 +57,10 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    """Meldet den Benutzer ab und macht seinen Token ungültig."""
+    """Logs the user out and invalidates the refresh token."""
 
     def post(self, request):
-        """Setzt den Token auf die Blacklist und löscht die Cookies."""
+        """Blacklists the refresh token and clears both cookies."""
         blacklist_refresh_token(request.COOKIES.get(REFRESH_COOKIE))
         response = Response({'detail': LOGOUT_DETAIL})
         delete_auth_cookies(response)
@@ -68,12 +68,12 @@ class LogoutView(APIView):
 
 
 class CookieTokenRefreshView(APIView):
-    """Erneuert den Zugriffstoken anhand des Cookies."""
+    """Renews the access token based on the refresh cookie."""
 
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Setzt einen neuen Zugriffstoken als Cookie."""
+        """Sets a new access token as a cookie."""
         access_token = create_access_token(request.COOKIES.get(REFRESH_COOKIE))
         if access_token is None:
             return Response(

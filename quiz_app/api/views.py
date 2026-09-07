@@ -2,26 +2,26 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .functions import QuizGenerationError
-from .models import Quiz
-from .permissions import IsOwner
+from ..functions import QuizGenerationError
+from ..models import Quiz
+from ..permissions import IsOwner
+from ..utils import create_quiz_from_url
 from .serializers import QuizCreateSerializer, QuizSerializer
-from .utils import create_quiz_from_url
 
 
 class QuizListCreateView(generics.ListCreateAPIView):
-    """Listet die eigenen Quizze und erzeugt neue aus einem Youtube Video."""
+    """Lists the own quizzes and creates new ones from a Youtube video."""
 
     serializer_class = QuizSerializer
 
     def get_queryset(self):
-        """Beschränkt die Liste auf die Quizze des angemeldeten Users."""
+        """Limits the list to the quizzes of the current user."""
         return Quiz.objects.filter(
             owner=self.request.user
         ).prefetch_related('questions')
 
     def create(self, request, *args, **kwargs):
-        """Erzeugt ein Quiz aus der übergebenen Videoadresse."""
+        """Creates a quiz from the submitted video address."""
         input_serializer = QuizCreateSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
         try:
@@ -38,7 +38,7 @@ class QuizListCreateView(generics.ListCreateAPIView):
 
 
 class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """Liefert, aktualisiert und löscht ein einzelnes Quiz."""
+    """Returns, updates and deletes a single quiz."""
 
     serializer_class = QuizSerializer
     queryset = Quiz.objects.all().prefetch_related('questions')

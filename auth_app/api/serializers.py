@@ -5,7 +5,7 @@ User = get_user_model()
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    """Validiert die Registrierungsdaten und legt den Benutzer an."""
+    """Validates the registration data and creates the user."""
 
     confirmed_password = serializers.CharField(write_only=True)
 
@@ -18,13 +18,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
-        """Stellt sicher, dass die Mail noch nicht vergeben ist."""
+        """Makes sure the email address is not taken yet."""
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('This email is already in use.')
         return value
 
     def validate(self, attrs):
-        """Prüft, ob Passwort und Passwortbestätigung übereinstimmen."""
+        """Checks that password and confirmation match."""
         if attrs['password'] != attrs['confirmed_password']:
             raise serializers.ValidationError(
                 {'confirmed_password': 'Passwords do not match.'}
@@ -32,6 +32,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Erstellt den Benutzer mit gehashtem Passwort."""
+        """Creates the user with a hashed password."""
         validated_data.pop('confirmed_password')
         return User.objects.create_user(**validated_data)
