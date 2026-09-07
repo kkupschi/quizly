@@ -1,53 +1,65 @@
 # Quizly Backend
 
-Backend für Quizly, eine Anwendung, die aus einem YouTube Video automatisch ein
-Quiz mit zehn Fragen und je vier Antwortmöglichkeiten erzeugt.
+Backend for Quizly, an application that turns a YouTube video into a quiz with
+ten questions and four answer options each.
 
-Das Video wird heruntergeladen, in eine Audiodatei umgewandelt, mit Whisper AI
-transkribiert und das Transkript anschließend von Google Gemini Flash zu einem
-Quiz verarbeitet.
+The video is downloaded, converted into an audio file, transcribed with Whisper
+AI and the transcript is then turned into a quiz by Google Gemini Flash.
 
-Backend und Frontend sind getrennt und kommunizieren ausschließlich über eine
-REST API. Die Authentifizierung läuft über JWT in HTTP-Only-Cookies.
+Backend and frontend are separated and talk to each other through a REST API
+only. Authentication runs over JWT stored in cookies that JavaScript cannot
+read.
 
-## Technologien
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Connecting the Frontend](#connecting-the-frontend)
+- [API Endpoints](#api-endpoints)
+- [Troubleshooting](#troubleshooting)
+- [Tests](#tests)
+- [Project Structure](#project-structure)
+- [Admin Panel](#admin-panel)
+
+## Tech Stack
 
 - Python 3.12
-- Django 6.1 und Django REST Framework
-- SimpleJWT mit Token-Blacklist
-- yt-dlp für den Download
-- FFmpeg und Whisper AI für die Transkription
-- Google Gemini Flash für die Quizerstellung
-- SQLite als Datenbank
+- Django 6.1 and Django REST Framework
+- SimpleJWT with token blacklist
+- yt-dlp for the download
+- FFmpeg and Whisper AI for the transcription
+- Google Gemini Flash for the quiz generation
+- SQLite as database
 
-## Voraussetzungen
+## Requirements
 
 ### Python
 
-Python 3.12 wird empfohlen. Neuere Versionen können Probleme mit den
-Abhängigkeiten von Whisper verursachen.
+Python 3.12 is recommended. Newer versions can cause trouble with the
+dependencies of Whisper.
 
 ### FFmpeg
 
-**FFmpeg muss global installiert und im PATH verfügbar sein.** Whisper AI kann
-ohne FFmpeg keine Audiodateien verarbeiten.
+**FFmpeg has to be installed globally and available in the PATH.** Whisper AI
+cannot process any audio file without FFmpeg.
 
-**Windows über das Terminal**
+**Windows through the terminal**
 
 ```bash
 winget install --id Gyan.FFmpeg -e --source winget
 ```
 
-**Windows manuell**
+**Windows by hand**
 
-1. Aktuelles Build von https://ffmpeg.org/download.html laden (Windows builds,
-   meist von gyan.dev oder BtbN)
-2. ZIP entpacken, zum Beispiel nach `C:\ffmpeg`
-3. Im Ordner `bin` liegt die `ffmpeg.exe`
-4. Rechtsklick auf "Dieser PC", dann "Eigenschaften", dann "Erweiterte
-   Systemeinstellungen"
-5. Unter "Umgebungsvariablen" den Eintrag `C:\ffmpeg\bin` zur Variable `Path`
-   hinzufügen
+1. Download a current build from https://ffmpeg.org/download.html (Windows
+   builds, usually from gyan.dev or BtbN)
+2. Unpack the ZIP file, for example to `C:\ffmpeg`
+3. The folder `bin` contains `ffmpeg.exe`
+4. Right click on "This PC", then "Properties", then "Advanced system
+   settings"
+5. Under "Environment variables" add `C:\ffmpeg\bin` to the variable `Path`
 
 **macOS**
 
@@ -56,8 +68,8 @@ winget install --id Gyan.FFmpeg -e --source winget
 brew install ffmpeg
 ```
 
-Nach der Installation muss das Terminal neu gestartet werden, damit der PATH
-übernommen wird. Prüfen lässt sich das mit:
+The terminal has to be restarted afterwards so that the PATH is picked up.
+This can be checked with:
 
 ```bash
 ffmpeg -version
@@ -65,18 +77,18 @@ ffmpeg -version
 
 ### Gemini API Key
 
-Der Key ist kostenlos und wird über https://ai.google.dev/ erstellt.
+The key is free and can be created at https://ai.google.dev/.
 
 ## Installation
 
-**1. Repository klonen**
+**1. Clone the repository**
 
 ```bash
 git clone https://github.com/kkupschi/quizly.git
 cd quizly
 ```
 
-**2. Virtuelle Umgebung anlegen und aktivieren**
+**2. Create and activate a virtual environment**
 
 Windows:
 
@@ -85,109 +97,159 @@ py -3.12 -m venv env
 .\env\Scripts\Activate.ps1
 ```
 
-macOS und Linux:
+macOS and Linux:
 
 ```bash
 python3.12 -m venv env
 source env/bin/activate
 ```
 
-**3. Abhängigkeiten installieren**
+**3. Install the dependencies**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Umgebungsvariablen setzen**
-
-Die Datei `.env.example` als Vorlage nach `.env` kopieren und ausfüllen:
-
-```
-SECRET_KEY=dein-django-secret-key
-DEBUG=True
-GEMINI_API_KEY=dein-google-gemini-api-key
-```
-
-Einen neuen Django Secret Key erzeugt man mit:
+**4. Create the environment file**
 
 ```bash
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+cp .env.example .env
 ```
 
-Die `.env` ist bewusst nicht Teil des Repositories und darf nicht committet
-werden.
+Then fill in the values as described under
+[Environment Variables](#environment-variables).
 
-**5. Datenbank vorbereiten**
+**5. Prepare the database**
 
 ```bash
 python manage.py migrate
 ```
 
-**6. Zugang für das Adminpanel anlegen**
+**6. Create an account for the admin panel**
 
 ```bash
 python manage.py createsuperuser
 ```
 
-**7. Server starten**
+**7. Start the server**
 
 ```bash
 python manage.py runserver
 ```
 
-Das Backend läuft anschließend unter http://127.0.0.1:8000/ und das Adminpanel
-unter http://127.0.0.1:8000/admin/.
+The backend then runs at http://127.0.0.1:8000/ and the admin panel at
+http://127.0.0.1:8000/admin/.
 
-## Frontend anbinden
+## Environment Variables
 
-Das Frontend erwartet das Backend unter `http://127.0.0.1:8000/api/`. Es wird
-üblicherweise mit der VS Code Erweiterung Live Server gestartet und läuft dann
-auf Port 5500.
+| Variable | Required | Description |
+|---|---|---|
+| `SECRET_KEY` | yes | Signing key of the Django project |
+| `DEBUG` | no | `True` during development, `False` otherwise |
+| `GEMINI_API_KEY` | yes | Key from https://ai.google.dev/ |
+| `GEMINI_MODEL` | no | Gemini model used for the generation |
 
-Die erlaubten Adressen stehen in `core/settings.py` unter
-`CORS_ALLOWED_ORIGINS`. Läuft das Frontend auf einem anderen Port, muss dieser
-dort ergänzt werden, sonst kommen die Cookies nicht an.
+A new Django secret key can be generated with:
 
-## API Endpunkte
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
 
-Alle Endpunkte liegen unter `/api/`. Die Authentifizierung erfolgt über die
-Cookies `access_token` und `refresh_token`, die beim Login gesetzt werden.
+`GEMINI_MODEL` defaults to `gemini-2.5-flash`. If that model answers with an
+error, the backend automatically tries the models listed in
+`GEMINI_FALLBACK_MODELS` in `core/settings.py`. See
+[Troubleshooting](#troubleshooting) for the models that can be used here.
 
-### Authentifizierung
+## Connecting the Frontend
 
-| Methode | Endpunkt | Beschreibung | Anmeldung nötig |
+The frontend expects the backend at `http://127.0.0.1:8000/api/`. It is
+usually started with the VS Code extension Live Server and then runs on port
+5500.
+
+The allowed addresses are listed in `core/settings.py` under
+`CORS_ALLOWED_ORIGINS`. If the frontend runs on a different port, that port has
+to be added there, otherwise the cookies never arrive.
+
+## API Endpoints
+
+All endpoints live under `/api/`. Authentication runs over the cookies
+`access_token` and `refresh_token` that are set during the login.
+
+### Authentication
+
+| Method | Endpoint | Description | Login required |
 |---|---|---|---|
-| POST | `/api/register/` | Neuen Benutzer registrieren | nein |
-| POST | `/api/login/` | Anmelden, setzt beide Cookies | nein |
-| POST | `/api/logout/` | Abmelden, sperrt den Refreshtoken | ja |
-| POST | `/api/token/refresh/` | Zugriffstoken erneuern | Cookie nötig |
+| POST | `/api/register/` | Register a new user | no |
+| POST | `/api/login/` | Log in, sets both cookies | no |
+| POST | `/api/logout/` | Log out, blacklists the refresh token | yes |
+| POST | `/api/token/refresh/` | Renew the access token | cookie required |
 
 ### Quiz
 
-| Methode | Endpunkt | Beschreibung |
+| Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/quizzes/` | Quiz aus einer YouTube Adresse erzeugen |
-| GET | `/api/quizzes/` | Alle eigenen Quizze abrufen |
-| GET | `/api/quizzes/{id}/` | Ein einzelnes Quiz abrufen |
-| PATCH | `/api/quizzes/{id}/` | Titel und Beschreibung ändern |
-| DELETE | `/api/quizzes/{id}/` | Quiz und alle Fragen löschen |
+| POST | `/api/quizzes/` | Create a quiz from a YouTube address |
+| GET | `/api/quizzes/` | Read all own quizzes |
+| GET | `/api/quizzes/{id}/` | Read a single quiz |
+| PATCH | `/api/quizzes/{id}/` | Change title and description |
+| DELETE | `/api/quizzes/{id}/` | Delete a quiz and all of its questions |
 
-Alle Quiz Endpunkte setzen eine Anmeldung voraus. Ein Zugriff auf ein fremdes
-Quiz führt zu 403, eine unbekannte Kennung zu 404.
+Every quiz endpoint requires a login. Access to a quiz of another user leads to
+403, an unknown id leads to 404.
 
-Die vollständige Beschreibung mit Request und Response Bodies steht in
+The full description with request and response bodies is documented in
 [docs/endpoints.md](docs/endpoints.md).
 
-### Unterstützte Videoadressen
+### Supported Video Addresses
 
-Beim Anlegen eines Quiz werden alle gängigen YouTube Formate akzeptiert, unter
-anderem `watch?v=`, `youtu.be`, `shorts`, `live`, `embed` und `v`, jeweils mit
-und ohne `www.` sowie mit `m.` und `music.`. Angehängte Parameter wie `&t=42s`
-oder `?si=` stören nicht.
+When a quiz is created, every common YouTube format is accepted, among others
+`watch?v=`, `youtu.be`, `shorts`, `live`, `embed` and `v`, each of them with
+and without `www.` as well as with `m.` and `music.`. Appended parameters such
+as `&t=42s` or `?si=` do no harm.
 
-Jede Adresse wird intern in die Form
-`https://www.youtube.com/watch?v=VIDEO_ID` gebracht und so gespeichert, damit
-das Frontend das Video zuverlässig einbetten kann.
+Every address is converted into the form
+`https://www.youtube.com/watch?v=VIDEO_ID` and stored that way, so that the
+frontend can embed the video reliably.
+
+## Troubleshooting
+
+### The generation takes several minutes
+
+The first request downloads the Whisper model and the transcription runs on the
+CPU. Depending on the machine and the length of the video this can take a few
+minutes. A short video of one or two minutes is the fastest way to try the
+feature out.
+
+### The AI answers with 503 or the quiz is never created
+
+A Gemini model can be overloaded or temporarily unavailable. The backend then
+answers with status 400 and a readable message instead of a server error.
+
+Two things help here:
+
+1. Try again a little later.
+2. Set another model in the `.env` file, for example:
+
+```
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+Models that work well for this project:
+
+| Model | Note |
+|---|---|
+| `gemini-2.5-flash` | Default, best quality of the generated questions |
+| `gemini-2.0-flash` | Faster and less often overloaded |
+| `gemini-2.5-flash-lite` | Fastest, slightly simpler questions |
+| `gemini-flash-latest` | Always points to the newest Flash model |
+
+If the configured model fails, the backend tries the fallback models on its own
+before it gives up.
+
+### The transcription fails
+
+This almost always means that FFmpeg is missing or not in the PATH. See
+[Requirements](#requirements).
 
 ## Tests
 
@@ -195,32 +257,38 @@ das Frontend das Video zuverlässig einbetten kann.
 python manage.py test
 ```
 
-Die Testsuite deckt beide Apps ab und prüft neben den Erfolgsfällen vor allem
-die Fehlerfälle: fehlende und ungültige Token, doppelte Benutzernamen und
-Mailadressen, abweichende Passwortbestätigung, fremde und unbekannte Quizze
-sowie ungültige Videoadressen.
+The test suite covers both apps and checks the error cases next to the happy
+paths: missing and invalid tokens, duplicate usernames and email addresses, a
+password confirmation that does not match, quizzes of other users, unknown
+quizzes, invalid video addresses and the fallback between the Gemini models.
 
-## Projektstruktur
+## Project Structure
 
 ```
 quizly/
-├── core/           Projektkonfiguration, Einstellungen und Haupt URLs
-├── auth_app/       Registrierung, Anmeldung, Abmeldung, Token
-│   ├── authentication.py   Liest den Token aus dem Cookie
-│   ├── serializers.py      Prüft die Registrierungsdaten
-│   ├── utils.py            Cookies, Blacklist, Tokenerzeugung
-│   └── views.py            Die vier Endpunkte
-├── quiz_app/       Quizze und Fragen
-│   ├── models.py           Quiz und Question
-│   ├── permissions.py      Zugriff nur auf eigene Quizze
-│   ├── serializers.py      Darstellung und Prüfung der Eingaben
-│   ├── utils.py            Adressprüfung und Quizerzeugung
-│   └── views.py            Liste, Detail, Änderung, Löschung
-├── docs/           Dokumentation der Endpunkte
+├── core/           Project configuration, settings and root URLs
+├── auth_app/       Registration, login, logout, token
+│   ├── api/
+│   │   ├── serializers.py  Checks the registration data
+│   │   ├── urls.py         Routes of the auth endpoints
+│   │   └── views.py        The four endpoints
+│   ├── authentication.py   Reads the token from the cookie
+│   └── utils.py            Cookies, blacklist, token creation
+├── quiz_app/       Quizzes and questions
+│   ├── api/
+│   │   ├── serializers.py  Representation and validation of the input
+│   │   ├── urls.py         Routes of the quiz endpoints
+│   │   └── views.py        List, detail, update, delete
+│   ├── functions.py        Download, transcription, Gemini request
+│   ├── models.py           Quiz and Question
+│   ├── permissions.py      Access to own quizzes only
+│   └── utils.py            Address validation and quiz creation
+├── docs/           Documentation of the endpoints
 └── requirements.txt
 ```
 
-## Adminpanel
+## Admin Panel
 
-Unter http://127.0.0.1:8000/admin/ lassen sich Quizze und ihre Fragen pflegen.
-Die Fragen sind direkt im Quiz eingebettet und zusätzlich einzeln erreichbar.
+Quizzes and their questions can be managed at http://127.0.0.1:8000/admin/.
+The questions are embedded directly in the quiz and can also be reached on
+their own.

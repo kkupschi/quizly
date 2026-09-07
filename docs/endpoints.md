@@ -1,12 +1,12 @@
-﻿# Quizly - Endpoint-Dokumentation
+# Quizly API Endpoints
 
-> Referenz für die Backend-Implementierung. Quelle: Vorgabe Developer Akademie.
+> Reference for the backend implementation. Source: specification of the Developer Akademie.
 
 ## Authentication
 
 ### POST /api/register/
 
-Registriert einen neuen Benutzer.
+Registers a new user.
 
 **Request Body**
 
@@ -19,7 +19,7 @@ Registriert einen neuen Benutzer.
 }
 ```
 
-**Success Response** - Benutzer wurde erfolgreich erstellt.
+**Success Response**: the user was created.
 
 ```json
 {
@@ -29,20 +29,20 @@ Registriert einen neuen Benutzer.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 201 | Benutzer erfolgreich erstellt. |
-| 400 | Ungültige Daten. |
-| 500 | Interner Serverfehler. |
+| 201 | User created successfully. |
+| 400 | Invalid data. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: keine
+- Rate limits: none
+- Permissions: none
 
 ---
 
 ### POST /api/login/
 
-Meldet den Benutzer an und setzt Auth-Cookies.
+Logs the user in and sets the auth cookies.
 
 **Request Body**
 
@@ -53,7 +53,7 @@ Meldet den Benutzer an und setzt Auth-Cookies.
 }
 ```
 
-**Success Response** - Login war erfolgreich. Cookies werden gesetzt.
+**Success Response**: the login succeeded and both cookies are set.
 
 ```json
 {
@@ -68,21 +68,21 @@ Meldet den Benutzer an und setzt Auth-Cookies.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Erfolgreicher Login. |
-| 401 | Ungültige Anmeldedaten. |
-| 500 | Interner Serverfehler. |
+| 200 | Login successful. |
+| 401 | Invalid credentials. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: keine
-- Extra: Setzt `access_token` und `refresh_token` als Cookies.
+- Rate limits: none
+- Permissions: none
+- Extra: sets `access_token` and `refresh_token` as cookies.
 
 ---
 
 ### POST /api/logout/
 
-Meldet den Benutzer ab und löscht alle Token.
+Logs the user out and deletes all tokens.
 
 **Request Body**
 
@@ -90,7 +90,7 @@ Meldet den Benutzer ab und löscht alle Token.
 {}
 ```
 
-**Success Response** - Der Benutzer wird ausgeloggt, alle Tokens sind ungültig.
+**Success Response**: the user is logged out and every token is invalid.
 
 ```json
 {
@@ -100,21 +100,21 @@ Meldet den Benutzer ab und löscht alle Token.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Erfolgreicher Logout. |
-| 401 | Nicht authentifiziert. |
-| 500 | Interner Serverfehler. |
+| 200 | Logout successful. |
+| 401 | Not authenticated. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich.
-- Extra: Cookies `access_token` und `refresh_token` werden entfernt.
+- Rate limits: none
+- Permissions: authentication required.
+- Extra: the cookies `access_token` and `refresh_token` are removed.
 
 ---
 
 ### POST /api/token/refresh/
 
-Erneuert den Access-Token mithilfe des Refresh-Tokens.
+Renews the access token with the help of the refresh token.
 
 **Request Body**
 
@@ -122,7 +122,7 @@ Erneuert den Access-Token mithilfe des Refresh-Tokens.
 {}
 ```
 
-**Success Response** - Gibt einen neuen Access-Token zurück.
+**Success Response**: returns a new access token.
 
 ```json
 {
@@ -132,15 +132,15 @@ Erneuert den Access-Token mithilfe des Refresh-Tokens.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Token erfolgreich erneuert. |
-| 401 | Refresh Token ungültig oder fehlt. |
-| 500 | Interner Serverfehler. |
+| 200 | Token renewed successfully. |
+| 401 | Refresh token invalid or missing. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung über `refresh_token`-Cookie erforderlich.
-- Extra: Setzt neuen `access_token` Cookie.
+- Rate limits: none
+- Permissions: authentication through the `refresh_token` cookie required.
+- Extra: sets a new `access_token` cookie.
 
 ---
 
@@ -148,7 +148,7 @@ Erneuert den Access-Token mithilfe des Refresh-Tokens.
 
 ### POST /api/quizzes/
 
-Erstellt ein neues Quiz basierend auf einer YouTube-URL.
+Creates a new quiz based on a YouTube URL.
 
 **Request Body**
 
@@ -158,7 +158,7 @@ Erstellt ein neues Quiz basierend auf einer YouTube-URL.
 }
 ```
 
-**Success Response** - Gibt das erstellte Quiz mit allen Fragen zurück.
+**Success Response**: returns the created quiz with all questions.
 
 ```json
 {
@@ -183,23 +183,23 @@ Erstellt ein neues Quiz basierend auf einer YouTube-URL.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 201 | Quiz erfolgreich erstellt. |
-| 400 | Ungültige URL oder Anfragedaten. |
-| 401 | Nicht authentifiziert. |
-| 500 | Interner Serverfehler. |
+| 201 | Quiz created successfully. |
+| 400 | Invalid URL or request data. |
+| 401 | Not authenticated. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich.
+- Rate limits: none
+- Permissions: authentication required.
 
 ---
 
 ### GET /api/quizzes/
 
-Ruft alle Quizzes des authentifizierten Benutzers ab.
+Reads all quizzes of the authenticated user.
 
-**Success Response** - Liste aller Quizzes des Benutzers mit Fragen.
+**Success Response**: list of all quizzes of the user with their questions.
 
 ```json
 [
@@ -224,28 +224,28 @@ Ruft alle Quizzes des authentifizierten Benutzers ab.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Quizzes erfolgreich abgerufen. |
-| 401 | Nicht authentifiziert. |
-| 500 | Interner Serverfehler. |
+| 200 | Quizzes read successfully. |
+| 401 | Not authenticated. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich.
+- Rate limits: none
+- Permissions: authentication required.
 
 ---
 
 ### GET /api/quizzes/{id}/
 
-Ruft ein spezifisches Quiz des Benutzers ab.
+Reads one specific quiz of the user.
 
 **URL Parameters**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| id | - | Die ID des Quiz, das abgerufen werden soll. |
+| id | int | The id of the quiz that should be read. |
 
-**Success Response** - Das spezifische Quiz mit allen Fragen und Details.
+**Success Response**: the requested quiz with all questions and details.
 
 ```json
 {
@@ -268,28 +268,28 @@ Ruft ein spezifisches Quiz des Benutzers ab.
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Quiz erfolgreich abgerufen. |
-| 401 | Nicht authentifiziert. |
-| 403 | Zugriff verweigert - Quiz gehört nicht dem Benutzer. |
-| 404 | Quiz nicht gefunden. |
-| 500 | Interner Serverfehler. |
+| 200 | Quiz read successfully. |
+| 401 | Not authenticated. |
+| 403 | Access denied, the quiz belongs to another user. |
+| 404 | Quiz not found. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich. Benutzer kann nur eigene Quizzes abrufen.
+- Rate limits: none
+- Permissions: authentication required. A user can read own quizzes only.
 
 ---
 
 ### PATCH /api/quizzes/{id}/
 
-Aktualisiert einzelne Felder eines Quiz (partielle Aktualisierung).
+Updates single fields of a quiz (partial update).
 
 **URL Parameters**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| id | - | Die ID des Quiz, das aktualisiert werden soll. |
+| id | int | The id of the quiz that should be updated. |
 
 **Request Body**
 
@@ -300,7 +300,7 @@ Aktualisiert einzelne Felder eines Quiz (partielle Aktualisierung).
 }
 ```
 
-**Success Response** - Das aktualisierte Quiz mit allen Details.
+**Success Response**: the updated quiz with all details.
 
 ```json
 {
@@ -323,42 +323,42 @@ Aktualisiert einzelne Felder eines Quiz (partielle Aktualisierung).
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 200 | Quiz erfolgreich aktualisiert. |
-| 400 | Ungültige Anfragedaten. |
-| 401 | Nicht authentifiziert. |
-| 403 | Zugriff verweigert - Quiz gehört nicht dem Benutzer. |
-| 404 | Quiz nicht gefunden. |
-| 500 | Interner Serverfehler. |
+| 200 | Quiz updated successfully. |
+| 400 | Invalid request data. |
+| 401 | Not authenticated. |
+| 403 | Access denied, the quiz belongs to another user. |
+| 404 | Quiz not found. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich. Benutzer kann nur eigene Quizzes bearbeiten.
+- Rate limits: none
+- Permissions: authentication required. A user can edit own quizzes only.
 
 ---
 
 ### DELETE /api/quizzes/{id}/
 
-Löscht ein Quiz und alle zugehörigen Fragen permanent.
+Deletes a quiz and all of its questions permanently.
 
 **URL Parameters**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| id | - | Die ID des Quiz, das gelöscht werden soll. |
+| id | int | The id of the quiz that should be deleted. |
 
-**Success Response** - Keine Antwortdaten bei erfolgreichem Löschen (`null`).
+**Success Response**: no response data after a successful delete (`null`).
 
 **Status Codes**
 
-| Code | Bedeutung |
+| Code | Meaning |
 | --- | --- |
-| 204 | Quiz erfolgreich gelöscht. |
-| 401 | Nicht authentifiziert. |
-| 403 | Zugriff verweigert - Quiz gehört nicht dem Benutzer. |
-| 404 | Quiz nicht gefunden. |
-| 500 | Interner Serverfehler. |
+| 204 | Quiz deleted successfully. |
+| 401 | Not authenticated. |
+| 403 | Access denied, the quiz belongs to another user. |
+| 404 | Quiz not found. |
+| 500 | Internal server error. |
 
-- Rate Limits: keine
-- Permissions: Authentifizierung erforderlich. Benutzer kann nur eigene Quizzes löschen.
-- Extra: Warnung - das Löschen ist permanent und kann nicht rückgängig gemacht werden.
+- Rate limits: none
+- Permissions: authentication required. A user can delete own quizzes only.
+- Extra: warning, the delete is permanent and cannot be undone.
