@@ -307,9 +307,9 @@ class QuizGenerationParsingTests(SimpleTestCase):
 
     def test_accepts_code_fence(self):
         """An answer wrapped in backticks is still read."""
-        raw = '```json\n' + json.dumps(fake_quiz_data(1)) + '\n```'
+        raw = '```json\n' + json.dumps(fake_quiz_data()) + '\n```'
         data = parse_quiz(raw)
-        self.assertEqual(len(data['questions']), 1)
+        self.assertEqual(len(data['questions']), 10)
 
     def test_rejects_broken_json(self):
         """A broken answer leads to a clear error."""
@@ -327,23 +327,29 @@ class QuizGenerationParsingTests(SimpleTestCase):
         with self.assertRaises(QuizGenerationError):
             parse_quiz(json.dumps(data))
 
+    def test_rejects_wrong_question_count(self):
+        """An answer with fewer than ten questions is rejected."""
+        data = fake_quiz_data(5)
+        with self.assertRaises(QuizGenerationError):
+            parse_quiz(json.dumps(data))
+
     def test_rejects_wrong_option_count(self):
         """A question with three options is rejected."""
-        data = fake_quiz_data(1)
+        data = fake_quiz_data()
         data['questions'][0]['question_options'] = ['A', 'B', 'C']
         with self.assertRaises(QuizGenerationError):
             parse_quiz(json.dumps(data))
 
     def test_rejects_answer_outside_options(self):
         """An answer that is not among the options is rejected."""
-        data = fake_quiz_data(1)
+        data = fake_quiz_data()
         data['questions'][0]['answer'] = 'Z'
         with self.assertRaises(QuizGenerationError):
             parse_quiz(json.dumps(data))
 
     def test_rejects_question_without_text(self):
         """A question without text is rejected."""
-        data = fake_quiz_data(1)
+        data = fake_quiz_data()
         data['questions'][0]['question_title'] = ''
         with self.assertRaises(QuizGenerationError):
             parse_quiz(json.dumps(data))

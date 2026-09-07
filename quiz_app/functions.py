@@ -167,8 +167,10 @@ def validate_quiz(data):
     questions = data.get('questions') if isinstance(data, dict) else None
     if not isinstance(questions, list):
         raise QuizGenerationError('The answer of the AI contains no quiz.')
-    if not questions:
-        raise QuizGenerationError('The AI did not deliver any questions.')
+    if len(questions) != QUESTION_COUNT:
+        raise QuizGenerationError(
+            f'The AI did not deliver {QUESTION_COUNT} questions.'
+        )
     for question in questions:
         validate_question(question)
 
