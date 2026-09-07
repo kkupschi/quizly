@@ -20,18 +20,18 @@ PATH_PREFIXES = ('watch', 'embed', 'shorts', 'live', 'v', 'e')
 
 
 def valid_video_id(value):
-    """Gibt die Kennung zurück, wenn sie elf gültige Zeichen hat."""
+    """Returns the video id if it consists of eleven valid characters."""
     return value if VIDEO_ID_PATTERN.match(value or '') else None
 
 
 def id_from_query(query):
-    """Holt die Kennung aus dem Parameter v einer Adresse."""
+    """Reads the video id from the v parameter of an address."""
     values = parse_qs(query).get('v', [])
     return valid_video_id(values[0]) if values else None
 
 
 def id_from_path(path):
-    """Holt die Kennung aus Pfaden wie shorts, live oder embed."""
+    """Reads the video id from paths such as shorts, live or embed."""
     segments = [segment for segment in path.split('/') if segment]
     if len(segments) != 2 or segments[0] not in PATH_PREFIXES:
         return None
@@ -39,7 +39,7 @@ def id_from_path(path):
 
 
 def extract_video_id(url):
-    """Liest die Kennung des Videos aus einer beliebigen Youtube Adresse."""
+    """Reads the video id from any supported Youtube address."""
     parts = urlparse(url)
     host = parts.netloc.lower()
     if parts.scheme not in ALLOWED_SCHEMES:
@@ -52,17 +52,17 @@ def extract_video_id(url):
 
 
 def is_youtube_url(url):
-    """Prüft, ob die Adresse auf ein Youtube Video zeigt."""
+    """Checks whether the address points to a Youtube video."""
     return extract_video_id(url) is not None
 
 
 def normalize_youtube_url(url):
-    """Bringt eine Youtube Adresse in die vom Frontend erwartete Form."""
+    """Converts a Youtube address into the form the frontend expects."""
     return WATCH_URL.format(extract_video_id(url))
 
 
 def save_questions(quiz, questions):
-    """Speichert die erzeugten Fragen zu einem Quiz."""
+    """Stores the generated questions of a quiz."""
     Question.objects.bulk_create([
         Question(
             quiz=quiz,
@@ -75,7 +75,7 @@ def save_questions(quiz, questions):
 
 
 def create_quiz_from_url(owner, video_url):
-    """Erzeugt ein Quiz samt Fragen zu einer Videoadresse."""
+    """Creates a quiz together with its questions for a video address."""
     data = generate_quiz_data(video_url)
     quiz = Quiz.objects.create(
         owner=owner,

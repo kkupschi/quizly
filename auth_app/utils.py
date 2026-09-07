@@ -8,7 +8,7 @@ REFRESH_COOKIE = settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH']
 
 
 def set_auth_cookie(response, name, token):
-    """Legt einen Token als Cookie auf der Response ab."""
+    """Stores a token as a cookie on the response."""
     response.set_cookie(
         key=name,
         value=str(token),
@@ -19,12 +19,12 @@ def set_auth_cookie(response, name, token):
 
 
 def build_user_payload(user):
-    """Baut die Userdaten, die der Login zurückgibt."""
+    """Builds the user data returned by the login endpoint."""
     return {'id': user.id, 'username': user.username, 'email': user.email}
 
 
 def build_login_response(user):
-    """Erstellt die Antwort für den Login inklusive gesetzter Cookies."""
+    """Creates the login response including both auth cookies."""
     refresh = RefreshToken.for_user(user)
     response = Response({
         'detail': 'Login successfully!',
@@ -36,13 +36,13 @@ def build_login_response(user):
 
 
 def delete_auth_cookies(response):
-    """Entfernt beide Cookies aus dem Browser."""
+    """Removes both auth cookies from the browser."""
     response.delete_cookie(ACCESS_COOKIE)
     response.delete_cookie(REFRESH_COOKIE)
 
 
 def blacklist_refresh_token(raw_token):
-    """Setzt den Token auf die Blacklist, sofern er gültig ist."""
+    """Blacklists the refresh token if it is still valid."""
     if not raw_token:
         return
     try:
@@ -52,7 +52,7 @@ def blacklist_refresh_token(raw_token):
 
 
 def create_access_token(raw_token):
-    """Erzeugt einen neuen Zugriffstoken aus dem uebergebenen Token."""
+    """Creates a new access token from the given refresh token."""
     if not raw_token:
         return None
     try:

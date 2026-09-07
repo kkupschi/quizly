@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Quiz(models.Model):
-    """Ein Quiz, das aus einem Youtube Video generiert wurde."""
+    """A quiz that was generated from a Youtube video."""
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -21,12 +21,12 @@ class Quiz(models.Model):
         verbose_name_plural = 'Quizzes'
 
     def __str__(self):
-        """Gibt den Titel des Quiz zurück."""
+        """Returns the title of the quiz."""
         return self.title
 
 
 class Question(models.Model):
-    """Eine Frage mit vier Antwortmöglichkeiten innerhalb eines Quiz."""
+    """A question with four answer options inside a quiz."""
 
     quiz = models.ForeignKey(
         Quiz,
@@ -43,5 +43,5 @@ class Question(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        """Gibt den Text der Frage zurück."""
+        """Returns the text of the question."""
         return self.question_title

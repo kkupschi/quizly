@@ -4,7 +4,7 @@ from .models import Question, Quiz
 
 
 class QuestionInline(admin.TabularInline):
-    """Zeigt die Fragen eines Quiz direkt in der Quizverwaltung."""
+    """Shows the questions of a quiz inside the quiz admin page."""
 
     model = Question
     extra = 0
@@ -13,7 +13,7 @@ class QuestionInline(admin.TabularInline):
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    """Verwaltung der Quizze samt der zugehörigen Fragen."""
+    """Manages quizzes together with their questions."""
 
     list_display = ('title', 'owner', 'created_at')
     list_filter = ('created_at', 'owner')
@@ -24,7 +24,7 @@ class QuizAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    """Verwaltung einzelner Fragen unabhängig vom Quiz."""
+    """Manages single questions independently of their quiz."""
 
     list_display = ('question_title', 'quiz', 'answer')
     list_filter = ('quiz',)

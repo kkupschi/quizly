@@ -3,10 +3,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class CookieJWTAuthentication(JWTAuthentication):
-    """Authentifiziert Requests über den Token im Cookie."""
+    """Authenticates requests with the token stored in the cookie."""
 
     def authenticate(self, request):
-        """Liest den Token aus dem Cookie und gibt den User zurück."""
+        """Reads the token from the cookie and returns the user."""
         cookie_name = settings.SIMPLE_JWT['AUTH_COOKIE_ACCESS']
         raw_token = request.COOKIES.get(cookie_name)
         if not raw_token:
